@@ -1,90 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackout Scanner</title>
-    <style>
-        body { font-family: 'Courier New', monospace; background: #000; color: #0f0; text-align: center; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* NEW: Team Selector Styling */
-        select { 
-            background: #111; color: #0f0; border: 1px solid #0f0; 
-            padding: 10px; font-size: 1rem; font-family: inherit; 
-            margin-bottom: 20px; width: 100%; max-width: 400px;
-        }
-
-        #reader { width: 100%; max-width: 400px; border: 2px solid #0f0; border-radius: 10px; background: #111; }
-        #status-box { margin-top: 20px; padding: 15px; border: 1px dashed #0f0; width: 100%; max-width: 380px; font-weight: bold; }
+    <title>Blackout War Room</title>
+    <meta http-equiv="refresh" content="5"> <style>
+        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
+        .stats { display: flex; justify-content: center; gap: 50px; margin: 20px; }
+        .box { background: #222; padding: 20px; border-radius: 10px; min-width: 150px; }
+        .num { font-size: 3rem; font-weight: bold; }
+        .alive { color: #0f0; } .dead { color: #f00; }
+        table { margin: 0 auto; width: 80%; border-collapse: collapse; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
+        .status-DEAD { color: red; text-decoration: line-through; }
+        .status-ALIVE { color: green; }
     </style>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-
-    <h1>TARGET LOCK</h1>
-    
-    <select id="team-selector">
-        <option value="ANY">-- SELECT TARGET TEAM --</option>
-        <option value="Team_1">Team 1</option>
-        <option value="Team_2">Team 2</option>
-        <option value="Team_3">Team 3</option>
-        <option value="Team_4">Team 4</option>
-        <option value="Team_5">Team 5</option>
-        <option value="Team_6">Team 6</option>
-        <option value="Team_7">Team 7</option>
-        <option value="Team_8">Team 8</option>
-        <option value="Team_9">Team 9</option>
-        <option value="Team_10">Team 10</option>
-    </select>
-
-    <div id="reader"></div>
-    <div id="status-box">SELECT TEAM TO ARM WEAPON</div>
-    <audio id="beep" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    <h1>WAR ROOM LIVE FEED</h1>
+    <div class="stats">
+        <div class="box"><div id="alive-count" class="num alive">--</div>ALIVE</div>
+        <div class="box"><div id="dead-count" class="num dead">--</div>DEAD</div>
+    </div>
+    <table id="roster"></table>
 
     <script>
-        // PASTE YOUR URL HERE
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGOt5-sI98J4Q0UvwCnNIA2Iq3dir-UnOh178MejRQbcHTF4WcziaeP90SRai2NBCc/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMlz8infX5Z5h5PsEkRGKbup39_jSfbQSpbXdnVAM3tU668_BCZtoaPdqsZYBY3dj3/exec"; 
 
-        let isScanning = true;
-
-        function onScanSuccess(decodedText, decodedResult) {
-            if (!isScanning) return; 
-
-            // Get the selected team
-            const selectedTeam = document.getElementById("team-selector").value;
-
-            // Simple Check: Force them to pick a team
-            if (selectedTeam === "ANY") {
-                document.getElementById('status-box').innerText = "⚠️ SELECT A TEAM FIRST!";
-                document.getElementById('status-box').style.color = "yellow";
-                return; // Stop here, don't send to Google
-            }
-
-            document.getElementById('beep').play().catch(e => {});
-            isScanning = false; 
-            document.getElementById('status-box').innerText = "Verifying Target...";
-
-            // Send ID + The Team we expect to kill
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    secret_id: decodedText,
-                    hunter_team: selectedTeam // <--- Sending the lock info
-                })
-            })
-            .then(() => {
-                document.getElementById('status-box').innerText = "⚡ SIGNAL SENT";
-                setTimeout(() => {
-                    document.getElementById('status-box').innerText = "READY";
-                    isScanning = true;
-                }, 3000);
+        fetch(API_URL).then(res => res.json()).then(data => {
+            let alive = 0, dead = 0;
+            let html = "";
+            
+            data.forEach(p => {
+                if(p.status === "DEAD") dead++; else alive++;
+                html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
             });
-        }
 
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+            document.getElementById('alive-count').innerText = alive;
+            document.getElementById('dead-count').innerText = dead;
+            document.getElementById('roster').innerHTML = html;
+        });
     </script>
 </body>
 </html>

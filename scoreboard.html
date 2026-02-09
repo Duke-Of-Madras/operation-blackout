@@ -1,109 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operation Blackout: WAR ROOM</title>
-    <style>
-        body { font-family: 'Courier New', monospace; background: #000; color: #fff; padding: 20px; text-align: center; }
-        h1 { color: #ff0000; border-bottom: 2px solid #f00; display: inline-block; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
-        
-        .dashboard { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }
-        .card { background: #111; border: 1px solid #333; padding: 20px; width: 150px; border-radius: 8px; }
-        .number { font-size: 3rem; font-weight: bold; }
-        .alive { color: #0f0; }
-        .dead { color: #f00; }
-        
-        table { width: 100%; max-width: 600px; margin: 0 auto; border-collapse: collapse; }
-        th { text-align: left; color: #888; border-bottom: 1px solid #444; padding: 10px; }
-        td { text-align: left; border-bottom: 1px solid #222; padding: 10px; }
-        
-        .status-ALIVE { color: #0f0; font-weight: bold; }
-        .status-DEAD { color: #f00; text-decoration: line-through; opacity: 0.6; }
-        
-        #loading { color: #ff0; margin-top: 20px; }
+    <title>Blackout War Room</title>
+    <meta http-equiv="refresh" content="5"> <style>
+        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
+        .stats { display: flex; justify-content: center; gap: 50px; margin: 20px; }
+        .box { background: #222; padding: 20px; border-radius: 10px; min-width: 150px; }
+        .num { font-size: 3rem; font-weight: bold; }
+        .alive { color: #0f0; } .dead { color: #f00; }
+        table { margin: 0 auto; width: 80%; border-collapse: collapse; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
+        .status-DEAD { color: red; text-decoration: line-through; }
+        .status-ALIVE { color: green; }
     </style>
 </head>
 <body>
-
-    <h1>⚠️ LIVE WAR ROOM ⚠️</h1>
-
-    <div class="dashboard">
-        <div class="card">
-            <div id="alive-count" class="number alive">--</div>
-            <div>OPERATIVES</div>
-        </div>
-        <div class="card">
-            <div id="dead-count" class="number dead">--</div>
-            <div>CASUALTIES</div>
-        </div>
+    <h1>WAR ROOM LIVE FEED</h1>
+    <div class="stats">
+        <div class="box"><div id="alive-count" class="num alive">--</div>ALIVE</div>
+        <div class="box"><div id="dead-count" class="num dead">--</div>DEAD</div>
     </div>
-
-    <div id="loading">Connecting to Satellite...</div>
-
-    <table id="roster" style="display:none;">
-        <thead>
-            <tr>
-                <th>Operative</th>
-                <th>Team</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            </tbody>
-    </table>
+    <table id="roster"></table>
 
     <script>
-        // ==========================================
-        // PASTE YOUR SAME GOOGLE URL HERE
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwGOt5-sI98J4Q0UvwCnNIA2Iq3dir-UnOh178MejRQbcHTF4WcziaeP90SRai2NBCc/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMlz8infX5Z5h5PsEkRGKbup39_jSfbQSpbXdnVAM3tU668_BCZtoaPdqsZYBY3dj3/exec"; 
 
-        async function updateScoreboard() {
-            try {
-                // Fetch the data from Google Sheets
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                let alive = 0;
-                let dead = 0;
-                const tbody = document.getElementById('table-body');
-                tbody.innerHTML = ""; // Clear current list
+        fetch(API_URL).then(res => res.json()).then(data => {
+            let alive = 0, dead = 0;
+            let html = "";
+            
+            data.forEach(p => {
+                if(p.status === "DEAD") dead++; else alive++;
+                html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
+            });
 
-                // Loop through every player
-                data.forEach(player => {
-                    if (player.status === "DEAD") {
-                        dead++;
-                    } else {
-                        alive++;
-                    }
-
-                    const row = `<tr>
-                        <td>${player.name}</td>
-                        <td>${player.team}</td>
-                        <td class="status-${player.status}">${player.status}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-
-                // Update the big numbers
-                document.getElementById('alive-count').innerText = alive;
-                document.getElementById('dead-count').innerText = dead;
-                
-                // Show table, hide loader
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('roster').style.display = 'table';
-
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                document.getElementById('loading').innerText = "⚠️ CONNECTION LOST";
-                document.getElementById('loading').style.color = "red";
-            }
-        }
-
-        // Run immediately, then every 5 seconds
-        updateScoreboard();
-        setInterval(updateScoreboard, 5000);
+            document.getElementById('alive-count').innerText = alive;
+            document.getElementById('dead-count').innerText = dead;
+            document.getElementById('roster').innerHTML = html;
+        });
     </script>
 </body>
 </html>
