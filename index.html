@@ -1,43 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Blackout War Room</title>
-    <meta http-equiv="refresh" content="5"> <style>
-        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
-        .stats { display: flex; justify-content: center; gap: 50px; margin: 20px; }
-        .box { background: #222; padding: 20px; border-radius: 10px; min-width: 150px; }
-        .num { font-size: 3rem; font-weight: bold; }
-        .alive { color: #0f0; } .dead { color: #f00; }
-        table { margin: 0 auto; width: 80%; border-collapse: collapse; }
-        td { padding: 10px; border-bottom: 1px solid #333; }
-        .status-DEAD { color: red; text-decoration: line-through; }
-        .status-ALIVE { color: green; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackout Kill Switch</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #000; color: #f00; text-align: center; padding: 20px; }
+        #reader { width: 100%; max-width: 400px; border: 2px solid #f00; margin: 0 auto; border-radius: 10px; }
+        .popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99; }
+        .hidden { display: none; }
+        input { background: #111; border: 2px solid #f00; color: #fff; padding: 15px; font-size: 2rem; width: 200px; text-align: center; letter-spacing: 5px; margin-bottom: 20px; border-radius: 5px; }
+        button { background: #f00; color: #000; font-weight: bold; border: none; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; text-transform: uppercase; border-radius: 5px; }
+        button:active { transform: scale(0.95); }
     </style>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
-    <h1>WAR ROOM LIVE FEED</h1>
-    <div class="stats">
-        <div class="box"><div id="alive-count" class="num alive">--</div>ALIVE</div>
-        <div class="box"><div id="dead-count" class="num dead">--</div>DEAD</div>
+    <h1>⚠️ KILL SWITCH ⚠️</h1>
+    <div id="reader"></div>
+    <div id="status" style="margin-top:20px; color:#fff;">SCAN TARGET TO INITIATE</div>
+
+    <div id="code-popup" class="popup hidden">
+        <h2 style="color:#fff;">AUTHORIZATION REQUIRED</h2>
+        <p>ENTER SPY KILL CODE</p>
+        <input type="number" id="kill-code" placeholder="____" maxlength="4">
+        <div><button onclick="fireWeapon()">FIRE WEAPON</button></div>
+        <button onclick="cancel()" style="background:#333; color:#fff; margin-top:20px; font-size:1rem;">ABORT</button>
     </div>
-    <table id="roster"></table>
 
     <script>
+        // ▼▼▼ PASTE YOUR GOOGLE SCRIPT LINK BELOW ▼▼▼
         const API_URL = "https://script.google.com/macros/s/AKfycbxMlz8infX5Z5h5PsEkRGKbup39_jSfbQSpbXdnVAM3tU668_BCZtoaPdqsZYBY3dj3/exec"; 
 
-        fetch(API_URL).then(res => res.json()).then(data => {
-            let alive = 0, dead = 0;
-            let html = "";
-            
-            data.forEach(p => {
-                if(p.status === "DEAD") dead++; else alive++;
-                html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
-            });
+        let scannedSecret = "";
+        let scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
 
-            document.getElementById('alive-count').innerText = alive;
-            document.getElementById('dead-count').innerText = dead;
-            document.getElementById('roster').innerHTML = html;
-        });
+        function onScan(decodedText) {
+            scanner.pause();
+            scannedSecret = decodedText;
+            document.getElementById('code-popup').classList.remove('hidden');
+        }
+
+        function fireWeapon() {
+            const code = document.getElementById('kill-code').value;
+            if(!code) return alert("ENTER CODE");
+            document.querySelector('#code-popup h2').innerText = "VERIFYING...";
+            
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ secret_id: scannedSecret, kill_code: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+        }
+        function cancel() { location.reload(); }
+        scanner.render(onScan);
     </script>
 </body>
 </html>
