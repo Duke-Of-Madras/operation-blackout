@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <title>Blackout War Room</title>
-    <meta http-equiv="refresh" content="5"> 
     <style>
         body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
         .stats { display: flex; justify-content: center; gap: 50px; margin: 20px; }
@@ -21,24 +20,42 @@
         <div class="box"><div id="alive-count" class="num alive">--</div>ALIVE</div>
         <div class="box"><div id="dead-count" class="num dead">--</div>DEAD</div>
     </div>
+    <div id="loading" style="color: #666; font-size: 0.9rem;">Syncing...</div>
     <table id="roster"></table>
 
     <script>
         // ▼▼▼ PASTE YOUR GOOGLE SCRIPT LINK BELOW ▼▼▼
         const API_URL = "https://script.google.com/macros/s/AKfycbxI8Xe8OeWYQ4ruiemLkIMc7tXNRerKhpXRgywz610ltLyzu00yzu802lOR0864IfXy/exec"; 
 
-        fetch(API_URL).then(res => res.json()).then(data => {
-            let alive = 0, dead = 0;
-            let html = "";
-            data.forEach(p => {
-                if(p.status === "DEAD") dead++; else alive++;
-                html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
-            });
-            document.getElementById('alive-count').innerText = alive;
-            document.getElementById('dead-count').innerText = dead;
-            document.getElementById('roster').innerHTML = html;
-        });
+        async function updateScoreboard() {
+            document.getElementById('loading').innerText = "Updating...";
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                
+                let alive = 0, dead = 0;
+                let html = "";
+                
+                data.forEach(p => {
+                    if(p.status === "DEAD") dead++; else alive++;
+                    // Only show rows if you want the full list, otherwise comment out the next line
+                    html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
+                });
+
+                document.getElementById('alive-count').innerText = alive;
+                document.getElementById('dead-count').innerText = dead;
+                document.getElementById('roster').innerHTML = html;
+                document.getElementById('loading').innerText = "System Active";
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        // Run immediately when page loads
+        updateScoreboard();
+
+        // Run silently every 5 seconds (NO RELOAD)
+        setInterval(updateScoreboard, 5000);
     </script>
 </body>
 </html>
-
