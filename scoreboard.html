@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <title>Blackout War Room</title>
-    <meta http-equiv="refresh" content="5"> <style>
+    <meta http-equiv="refresh" content="5"> 
+    <style>
         body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
         .stats { display: flex; justify-content: center; gap: 50px; margin: 20px; }
         .box { background: #222; padding: 20px; border-radius: 10px; min-width: 150px; }
@@ -23,17 +24,16 @@
     <table id="roster"></table>
 
     <script>
+        // ▼▼▼ PASTE YOUR GOOGLE SCRIPT LINK BELOW ▼▼▼
         const API_URL = "https://script.google.com/macros/s/AKfycbxMlz8infX5Z5h5PsEkRGKbup39_jSfbQSpbXdnVAM3tU668_BCZtoaPdqsZYBY3dj3/exec"; 
 
         fetch(API_URL).then(res => res.json()).then(data => {
             let alive = 0, dead = 0;
             let html = "";
-            
             data.forEach(p => {
                 if(p.status === "DEAD") dead++; else alive++;
                 html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
             });
-
             document.getElementById('alive-count').innerText = alive;
             document.getElementById('dead-count').innerText = dead;
             document.getElementById('roster').innerHTML = html;
