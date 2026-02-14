@@ -1,98 +1,555 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Blackout War Room</title>
-    <style>
-        body { background: #000; color: #fff; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* LEFT SIDE: KILL FEED */
-        .feed-panel { width: 30%; border-right: 2px solid #333; padding: 20px; overflow-y: auto; background: #0a0a0a; }
-        .feed-title { font-size: 1.5rem; border-bottom: 2px solid #f00; padding-bottom: 10px; margin-bottom: 20px; color: #f00; text-transform: uppercase; letter-spacing: 2px; }
-        .kill-item { margin-bottom: 15px; padding: 10px; border-left: 3px solid #f00; background: #111; animation: flash 1s; }
-        .kill-time { font-size: 0.8rem; color: #666; }
-        .kill-msg { font-size: 1rem; margin-top: 5px; }
-        .killer-team { color: #f00; font-weight: bold; }
-        .victim { color: #fff; text-decoration: line-through; }
+<html lang="fr">
 
-        /* RIGHT SIDE: MAIN STATS */
-        .main-panel { width: 70%; padding: 20px; text-align: center; display: flex; flex-direction: column; }
-        .stats { display: flex; justify-content: center; gap: 50px; margin-bottom: 30px; }
-        .box { background: #111; padding: 30px; border-radius: 10px; min-width: 150px; border: 1px solid #333; }
-        .num { font-size: 4rem; font-weight: bold; display: block; }
-        .alive { color: #0f0; } .dead { color: #f00; }
-        
-        table { width: 90%; margin: 0 auto; border-collapse: collapse; font-size: 0.9rem; }
-        td { padding: 8px; border-bottom: 1px solid #222; text-align: left; }
-        .status-DEAD { color: #555; text-decoration: line-through; }
-        .status-ALIVE { color: #0f0; }
-        
-        @keyframes flash { 0% { background: #500; } 100% { background: #111; } }
+<head>
+    <title>RÈGNE DE TERREUR - Tribunal Révolutionnaire</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts - French Revolution Style -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Cinzel:wght@400;600&family=Crimson+Text:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1612 0%, #2d2416 100%);
+            background-attachment: fixed;
+            color: #f4e8d8;
+            font-family: 'Crimson Text', serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background pattern */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(90deg, rgba(212, 175, 55, 0.03) 0px, transparent 2px, transparent 40px),
+                repeating-linear-gradient(0deg, rgba(212, 175, 55, 0.03) 0px, transparent 2px, transparent 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header with tricolor accent */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: linear-gradient(to right,
+                    #0055A4 0%,
+                    #0055A4 33%,
+                    #FFFFFF 33%,
+                    #FFFFFF 66%,
+                    #EF4135 66%,
+                    #EF4135 100%);
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 3px;
+            background: #D4AF37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            font-weight: 900;
+            color: #1a1612;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.9rem, 2vw, 1.4rem);
+            color: #2d2416;
+            margin-top: 8px;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+
+        /* Main content layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        /* Statistics Display */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            background: linear-gradient(145deg, #2d2416, #1a1612);
+            padding: 30px 40px;
+            border-radius: 12px;
+            min-width: 200px;
+            border: 2px solid #D4AF37;
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(212, 175, 55, 0.3);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .box:hover {
+            transform: translateY(-5px);
+            box-shadow:
+                0 15px 50px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(212, 175, 55, 0.5);
+        }
+
+        .num {
+            font-size: 4rem;
+            font-weight: bold;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px currentColor;
+            transition: all 0.3s ease;
+        }
+
+        .label {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .alive {
+            color: #4ade80;
+        }
+
+        .dead {
+            color: #ef4444;
+        }
+
+        /* Kill History Sidebar */
+        .kill-history {
+            background: rgba(45, 36, 22, 0.5);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(10px);
+            max-height: 800px;
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+
+        .kill-history h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #D4AF37;
+            letter-spacing: 2px;
+            text-align: center;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            padding-bottom: 15px;
+        }
+
+        .kill-entry {
+            background: linear-gradient(145deg, rgba(239, 65, 53, 0.1), rgba(139, 0, 0, 0.1));
+            border-left: 3px solid #EF4135;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .kill-entry .victim {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+            color: #f4e8d8;
+            margin-bottom: 5px;
+        }
+
+        .kill-entry .team {
+            color: #EF4135;
+            font-weight: bold;
+        }
+
+        .kill-entry .time {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: #D4AF37;
+            opacity: 0.7;
+        }
+
+        .no-kills {
+            text-align: center;
+            color: rgba(244, 232, 216, 0.5);
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        /* Scrollbar styling for kill history */
+        .kill-history::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .kill-history::-webkit-scrollbar-track {
+            background: rgba(26, 22, 18, 0.5);
+            border-radius: 4px;
+        }
+
+        .kill-history::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.5);
+            border-radius: 4px;
+        }
+
+        .kill-history::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.7);
+        }
+
+        /* Table Section */
+        .roster-section {
+            background: rgba(45, 36, 22, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #D4AF37;
+            letter-spacing: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(26, 22, 18, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(to right, #0055A4, #EF4135);
+        }
+
+        th {
+            padding: 18px;
+            text-align: left;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+
+        td {
+            padding: 15px 18px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            font-size: 1.05rem;
+            transition: background 0.3s ease;
+        }
+
+        tr:hover td {
+            background: rgba(212, 175, 55, 0.08);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-DEAD {
+            color: #ef4444;
+            text-decoration: line-through;
+            opacity: 0.6;
+            font-style: italic;
+            position: relative;
+        }
+
+        .status-DEAD::after {
+            content: "⚔";
+            margin-left: 8px;
+            filter: drop-shadow(0 0 5px #ef4444);
+        }
+
+        .status-ALIVE {
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            color: #D4AF37;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .kill-history {
+                position: static;
+                max-height: 400px;
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                gap: 20px;
+            }
+
+            .box {
+                min-width: 150px;
+                padding: 20px 30px;
+            }
+
+            .num {
+                font-size: 3rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th,
+            td {
+                padding: 12px;
+            }
+        }
+
+        /* Data update indicator */
+        .update-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid #D4AF37;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: #D4AF37;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .update-indicator.active {
+            opacity: 1;
+        }
     </style>
 </head>
+
 <body>
+    <div class="update-indicator" id="updateIndicator">⟳ Actualisation...</div>
 
-    <div class="feed-panel">
-        <div class="feed-title">Kill History</div>
-        <div id="kill-feed">Loading...</div>
-    </div>
+    <div class="container">
+        <header>
+            <h1>RÈGNE DE TERREUR</h1>
+            <div class="subtitle">TRIBUNAL RÉVOLUTIONNAIRE</div>
+        </header>
 
-    <div class="main-panel">
-        <h1 style="letter-spacing: 5px; margin-bottom: 40px;">WAR ROOM</h1>
         <div class="stats">
-            <div class="box"><span id="alive-count" class="num alive">--</span>ALIVE</div>
-            <div class="box"><span id="dead-count" class="num dead">--</span>DEAD</div>
+            <div class="box alive-box">
+                <div id="alive-count" class="num alive">--</div>
+                <div class="label">Survivants</div>
+            </div>
+            <div class="box dead-box">
+                <div id="dead-count" class="num dead">--</div>
+                <div class="label">Guillotinés</div>
+            </div>
         </div>
-        <div style="overflow-y: auto; flex-grow: 1;">
-            <table id="roster"></table>
+
+        <div class="main-content">
+            <div class="kill-history">
+                <h2>⚔ Registre des Exécutions</h2>
+                <div id="kill-feed">
+                    <div class="no-kills">Aucune exécution pour l'instant...</div>
+                </div>
+            </div>
+
+            <div class="roster-section">
+                <h2>⚜ Registre des Citoyens ⚜</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Équipe</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roster"></tbody>
+                </table>
+            </div>
         </div>
+
+        <footer>
+            VIT Chennai • French Club • 2026
+        </footer>
     </div>
 
     <script>
-        // ▼▼▼ PASTE YOUR NEW GOOGLE SCRIPT URL BELOW ▼▼▼
-        const API_URL = "https://script.google.com/macros/s/AKfycbx1pDvCXGTZfhmj7ZIrFqfiJYXqjokbwDCeTnpvuAunjyefqwz7RorKTHAebXDNkwc_/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMlz8infX5Z5h5PsEkRGKbup39_jSfbQSpbXdnVAM3tU668_BCZtoaPdqsZYBY3dj3/exec";
 
-        async function updateScoreboard() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                
-                let alive = 0, dead = 0;
-                let rosterHtml = "";
-                let feedHtml = "";
-                
-                // Sort data: Dead people with timestamps go to the feed
-                // We want the newest kills at the top
-                const kills = data.filter(p => p.status === "DEAD" && p.time).reverse();
+        let previousData = null;
+        let killHistory = [];
 
-                data.forEach(p => {
-                    if(p.status === "DEAD") dead++; else alive++;
-                    rosterHtml += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
+        function updateData() {
+            // Show update indicator
+            const indicator = document.getElementById('updateIndicator');
+            indicator.classList.add('active');
+
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    // Check for new kills
+                    if (previousData) {
+                        data.forEach(player => {
+                            const prevPlayer = previousData.find(p => p.name === player.name);
+                            if (prevPlayer && prevPlayer.status === "ALIVE" && player.status === "DEAD") {
+                                // New kill detected!
+                                const now = new Date();
+                                killHistory.unshift({
+                                    name: player.name,
+                                    team: player.team,
+                                    time: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                });
+                                // Keep only last 50 kills
+                                if (killHistory.length > 50) killHistory.pop();
+                            }
+                        });
+                    }
+                    previousData = data;
+
+                    // Update counters with smooth transition
+                    let alive = 0, dead = 0;
+                    data.forEach(p => {
+                        if (p.status === "DEAD") dead++; else alive++;
+                    });
+
+                    updateCounter('alive-count', alive);
+                    updateCounter('dead-count', dead);
+
+                    // Update roster
+                    let html = "";
+                    data.forEach(p => {
+                        html += `<tr><td>${p.name}</td><td>${p.team}</td><td class="status-${p.status}">${p.status}</td></tr>`;
+                    });
+                    document.getElementById('roster').innerHTML = html;
+
+                    // Update kill feed
+                    updateKillFeed();
+
+                    // Hide update indicator
+                    setTimeout(() => {
+                        indicator.classList.remove('active');
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    indicator.classList.remove('active');
                 });
+        }
 
-                kills.forEach(k => {
-                    feedHtml += `
-                        <div class="kill-item">
-                            <div class="kill-time">${k.time}</div>
-                            <div class="kill-msg">
-                                <span class="killer-team">${k.killer || "Unknown"}</span> 
-                                eliminated 
-                                <span class="victim">${k.name}</span>
+        function updateCounter(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            if (element.innerText !== newValue.toString()) {
+                element.style.transform = 'scale(1.2)';
+                element.innerText = newValue;
+                setTimeout(() => {
+                    element.style.transform = 'scale(1)';
+                }, 300);
+            }
+        }
+
+        function updateKillFeed() {
+            const feedElement = document.getElementById('kill-feed');
+
+            if (killHistory.length === 0) {
+                feedElement.innerHTML = '<div class="no-kills">Aucune exécution pour l\'instant...</div>';
+            } else {
+                let html = '';
+                killHistory.forEach(kill => {
+                    html += `
+                        <div class="kill-entry">
+                            <div class="victim">
+                                <span class="team">${kill.team}</span> a guillotiné <strong>${kill.name}</strong>
                             </div>
+                            <div class="time">⏰ ${kill.time}</div>
                         </div>
                     `;
                 });
-
-                document.getElementById('alive-count').innerText = alive;
-                document.getElementById('dead-count').innerText = dead;
-                document.getElementById('roster').innerHTML = rosterHtml;
-                document.getElementById('kill-feed').innerHTML = feedHtml || "<div style='color:#444'>No casualties yet...</div>";
-                
-            } catch (err) { console.error(err); }
+                feedElement.innerHTML = html;
+            }
         }
 
-        setInterval(updateScoreboard, 5000);
-        updateScoreboard();
+        // Initial load
+        updateData();
+
+        // Update every 5 seconds (smooth, no page reload)
+        setInterval(updateData, 5000);
     </script>
 </body>
+
 </html>
+
 
